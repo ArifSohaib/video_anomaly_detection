@@ -4,13 +4,14 @@ import cv2
 import scipy.misc
 import pickle
 import h5py
+import numpy as np
 
 #construct the argumentpase and parse th arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", required=True,
                 help="Path to input video file")
 ap.add_argument("-o", "--output", required=True,
-                help="path to output file 'long exposure'")
+                help="path to output file")
 ap.add_argument("-ow", "--output_width", required=False, 
                 help="width of output")
 ap.add_argument("-oh", "--output_height",required=False,
@@ -46,7 +47,7 @@ try:
         height = int(args["output_height"])
 except:
     print("[ERROR]please enter an integer for output_height and output_width")
-dset = h5f.create_dataset(name=args["video"]+"_smaller", shape=(num_frames/5, height, width,3))
+dset = h5f.create_dataset(name=args["video"][:-4]+"_smaller", shape=(num_frames/5, height, width,3), dtype=np.uint8)
 print("[INFO] computing frame averages, this may take a while...")
 #current index being processed
 current_idx = impact_frame_idx
@@ -92,7 +93,7 @@ while True:
         elif total_frames % 5 == 0:
             # print("averaging 5 frames")
             #merge the RGB averages together
-            avg = cv2.merge([bAvg, gAvg, rAvg]).astype("uint8")
+            avg = cv2.merge([bAvg, gAvg, rAvg]).astype(np.uint8)
             avg = cv2.resize(avg, (width, height))
 
             #write averaged frames to output video
@@ -101,7 +102,8 @@ while True:
             #clear the averages
             (rAvg, gAvg, bAvg) = (None, None, None)
     except IndexError:
-        avg = cv2.merge([bAvg, gAvg, rAvg]).astype("uint8")
+        avg = cv2.merge([bAvg, gAvg, rAvg]).astype(np.uint8)
+        # avg = cv2.resize(avg, (width, height))
         avg = cv2.resize(avg, (width, height))
         dset[output_frame] = avg
         break

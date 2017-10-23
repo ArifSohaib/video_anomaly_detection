@@ -1,5 +1,6 @@
 from torch.utils.data import DataLoader, Dataset
 import h5py
+import numpy as np
 
 class H5VideoDataset(Dataset):
     def __init__(self, h5_file, transforms=None):
@@ -23,4 +24,4 @@ class H5VideoDataset(Dataset):
         args:
             idx: the index of the item to return
         """
-        return self.h5file['data'][self.dset_name][idx]
+        return self.h5file['data'][self.dset_name][idx].astype(np.float32)

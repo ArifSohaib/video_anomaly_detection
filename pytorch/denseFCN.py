@@ -9,7 +9,7 @@ class DenseBlock(nn.Module):
         """
         Args:
             nIn: size of input layer 
-            growth_rate:
+            growth_rate: size K to be appended to each layer channel
             depth: number of layers
             drop_rate: dropout rate
             only_new:
@@ -27,19 +27,28 @@ class DenseBlock(nn.Module):
     
     def forward(self,x):
         if self.only_new:
+            #if there is no previous layer
             outputs = []
             for i in range(self.depth):
+                #get output of layer i
                 tx = self.layers[i](x)
+                #concat the output with the input in dimension 1
                 x  = torch.cat((x, tx), 1)
+                #append to outputs
                 outputs.append(tx)
+            #return the concatnated tensor
             return torch.cat(outputs, 1)
         else:
             for i in range(self.depth):
+                #concat the input with the output of previous layer
                 x = torch.cat((x, self.layers[i](x)), 1)
+            #returned the concatnated tensor
             return x
 
     def get_transform(self, nIn, nOut, bottle_neck=None, drop_rate=0):
         if not bottle_neck or nIn <= nOut * bottle_neck:
+            #build a dense block 
+            #first do a batch_norm, then a ReLU, then Conv2d and finally Dropout
             return nn.Sequential(
                                  nn.BatchNorm2d(nIn),
                                  nn.ReLU(True),
